@@ -3,12 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plot 
 import numpy as np
 
-
 #global variables
 DJI_data: str = "./DJI.csv"
 SAP_data: str = "./SAP.csv"
 NAS_data: str = "./NAS.csv"
-
 
 #main function
 def main() -> None:
@@ -22,14 +20,11 @@ def main() -> None:
     SAP = custom_clean_up(SAP)
     NAS = custom_clean_up(NAS)
     
-    #calculate the open-close change for a given day
-    DJI["Difference"] = DJI["Close"] - DJI["Open"]
-    SAP["Difference"] = SAP["Close"] - SAP["Open"]
-    NAS["Difference"] = NAS["Close"] - NAS["Open"]
-    
     #plot correlations
-    pre_screen_information(DJI, "DOw Jones Industrial Average")
+    pre_screen_information(DJI, "Dow Jones Industrial Average")
     
+    #create phase plots
+    create_phase_lots(DJI, "Dow Jones Industrial Average")
     
     #clean up memeory
     del DJI
@@ -48,6 +43,9 @@ def custom_clean_up(dataframe: pd) -> pd:
     
     # remove NAs
     dataframe.drop_na(inplace = True)
+    
+    #create a difference columns
+    dataframe["Difference"] = dataframe["Close"] - dataframe["Open"]
     
     #convert columns to numeric except the first date column
     for i in range(2, len(dataframe.columns)):
@@ -111,9 +109,69 @@ def phase_plot_data(dataframe: pd, phases: int) -> list:
     if type(phases) != int:
         return 
     
-    length: int = len(dataframe)
-    return 
+    initial_list: list = dataframe.tolist()
+    return_list: list = []
+    length: int = len(dataframe)    
+    for i in range(0, phases - 1):
+        return_list.append(initial_list[i:length - phases + i])
+    
+    return return_list
 
+    #create phase plots
+def create_phase_lots(data: pd, title: str) -> None:
+    #generate phase plots
+    
+    TDPhaseData = phase_plot_data(data, 2)
+    two_D_phase_plot(TDPhaseData, title)
+    del TDPhaseData
+    
+    TDPhaseData = phase_plot_data(data, 3)
+    three_D_phase_plot(TDPhaseData, title)
+    del TDPhaseData
+    
+    return
+
+
+    #2D Phase plot
+def two_D_phase_plot(data: list, plot_name: str) -> None:
+    #create labels
+    file_label = f"2Dphase_plot_{plot_name}.tiff"
+    
+    #generates plots
+    plot.scatter(data[0], data[1])
+    plot.xlabel("N")
+    plot.ylabel("N + 1" )
+    plot.title(f"Phase Plot")
+    plot.savefig(file_label)
+    
+    #cleans up memory
+    plot.clf
+    del file_label
+    return
+    
+    
+    #3D Plot
+def three_D_phase_plot(data: list, plot_name: str) -> None:
+    #create labels
+    file_label = f"3Dphase_plot_{plot_name}.tiff"
+    
+    #generates plots
+    fig = plot.figure()
+    ax = fig.add_subplot(rpojection = '3d')
+    ax.scatter(data[0], data[1], data[2])
+    plot.xlabel("N")
+    plot.ylabel("N + 1" )
+    plot.zlabel("N + 2")
+    plot.title(f"3D Phase Plot")
+    plot.savefig(file_label)
+    
+    #cleans up memory
+    plot.clf
+    del fig
+    del ax
+    del file_label
+    return
+    
 #custom classes
 
 
