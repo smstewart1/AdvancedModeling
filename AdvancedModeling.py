@@ -2,34 +2,50 @@
 import pandas as pd 
 import matplotlib.pyplot as plot 
 import numpy as np
+from sklearn.cluster import KMeans, DBSCAN
+from sklearn.preprocessing import StandardScaler
 
 #global variables
 DJI_data: str = "./DJI.csv"
 SAP_data: str = "./SAP.csv"
 NAS_data: str = "./NAS.csv"
+features: list = ["Open", "Close", "High", "Low"]
 
 #main function
 def main() -> None:
     #read in csv files
     DJI: pd = pd.read_csv(DJI_data)
-    SAP: pd = pd.read_csv(SAP_data)
-    NAS: pd = pd.read_csv(NAS_data)
+    #SAP: pd = pd.read_csv(SAP_data)
+    #NAS: pd = pd.read_csv(NAS_data)
     
     #clean up files
     DJI = custom_clean_up(DJI)
-    SAP = custom_clean_up(SAP)
-    NAS = custom_clean_up(NAS)
+    #SAP = custom_clean_up(SAP)
+    #NAS = custom_clean_up(NAS)
     
     #plot correlations
-    pre_screen_information(DJI, "Dow Jones Industrial Average")
+    #pre_screen_information(DJI, "Dow Jones Industrial Average")
     
     #create phase plots
-    create_phase_lots(DJI, "Dow Jones Industrial Average")
+    #create_phase_lots(DJI, "Dow Jones Industrial Average")
+    
+    #3d plots 
+    # for i, j in enumerate(features):
+    #     for k in range(i + 1, len(features) - 1):
+    #         three_D_plot(DJI, j, features[k], "Dow Jones Industrial Average")
+    
+    #create a normalized array for fitting
+    scaler = StandardScaler()
+    scaled_data = scaler.fit_transform(DJI)
+    DJIN = pd.DataFrame(scaled_data, columns = DJI.columns)
+    
+    #K means scaling
+    
     
     #clean up memeory
     del DJI
-    del SAP
-    del NAS
+    #del SAP
+    #del NAS
     return
 
 
@@ -46,7 +62,7 @@ def custom_clean_up(dataframe: pd) -> pd:
     dataframe.replace(',', '', regex = True, inplace = True)
         
     #convert columns to numeric except the first date column
-    for i in ["Open", "Close", "High", "Low"]:
+    for i in features:
         dataframe[i] = dataframe[i].astype(float)
         
     #create a difference columns
@@ -139,7 +155,7 @@ def two_D_phase_plot(data: list, plot_name: str) -> None:
     del file_label
     return
     
-    #3D Plot
+    #3D Phase Plot
 def three_D_phase_plot(data: list, plot_name: str) -> None:
     #create labels
     file_label = f"3Dphase_plot_{plot_name}.tiff"
@@ -161,7 +177,29 @@ def three_D_phase_plot(data: list, plot_name: str) -> None:
     del ax
     del file_label
     return
+
+    #3D Plot vs difference
+def three_D_plot(data: list, xvar: str, yvar: str, plot_name: str) -> None:
+    #create labels
+    file_label = f"3D_plot_{plot_name} {xvar} {yvar} difference.tiff"
     
+    #generates plots
+    fig = plot.figure()
+    ax = fig.add_subplot(projection = '3d')
+    ax.scatter(data[xvar], data[yvar], data["Difference"])
+    ax.set_xlabel(xvar)
+    ax.set_ylabel(yvar)
+    ax.set_zlabel("Difference")
+    plot.title(f"3D Phase Plot {plot_name}")
+    plot.savefig(file_label)
+    
+    #cleans up memory
+    plot.clf()
+    plot.close()
+    del fig
+    del ax
+    del file_label
+    return    
 #custom classes
 
 #execute if main
