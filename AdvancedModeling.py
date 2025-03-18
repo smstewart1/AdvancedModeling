@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plot 
 import numpy as np
 from sklearn.cluster import KMeans, DBSCAN
+from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
 
 #global variables
@@ -35,12 +36,11 @@ def main() -> None:
     #         three_D_plot(DJI, j, features[k], "Dow Jones Industrial Average")
     
     #create a normalized array for fitting
-    scaler = StandardScaler()
-    scaled_data = scaler.fit_transform(DJI)
-    DJIN = pd.DataFrame(scaled_data, columns = DJI.columns)
+
     
     #K means scaling
-    
+    # Sensitivity analysis for number of clusters
+   
     
     #clean up memeory
     del DJI
@@ -50,6 +50,45 @@ def main() -> None:
 
 
 #custom functions
+    #run the k-means analysis of a dataset
+def k_means(dataframe: pd, title_info: str) -> None:
+    #remove only the relevant columns
+    df2 = dataframe[features]
+    df2['Day'] = range(len(df2))
+    
+    #normals and find best k-means
+    cluster_range = range(2, 10)
+    silhouette_scores = []
+    
+    scaler = StandardScaler()
+    NData = scaler.fit_transform(df2) #change date to a number and drop the date column
+    
+    for i, j in enumerate(features):
+        for k in range(i + 1, len(features)):
+            for n_clusters in cluster_range:
+                kmeans = KMeans(n_clusters = n_clusters, random_state = 42)
+                kmeans_labels = kmeans.fit_predict(df2[j, features[k], "Difference"])
+                silhouette_avg = silhouette_score(df2[j, features[k], "Difference"], kmeans_labels)
+                silhouette_scores.append(silhouette_avg)
+                k_means_plots(j, features[k], cluster_range, silhouette_scores, title_info)
+        
+    return
+
+    #plot and save k-means
+def k_means_plots(xvar: str, yvar: str, cluster_range: list, silhouette_scores: list, title_info: str) -> None:
+    plot.figure(figsize=(10, 6))
+    plot.plot(cluster_range, silhouette_scores, marker='o', linestyle='--')
+    plot.title('Sensitivity Analysis: Number of Clusters')
+    plot.xlabel('Number of Clusters')
+    plot.ylabel('Silhouette Score')
+    plot.grid(True)
+    plot.savefig('sensitivity_analysis.png')
+    plot.savefig(f"{title_info} {xvar} {yvar}.tiff")
+    plot.clf
+    plot.clear
+    return
+
+
     #standardizes file cleanups
 def custom_clean_up(dataframe: pd) -> pd:
     #test for empty dataframe and return error
