@@ -85,7 +85,7 @@ def plotter_support(df1: pd, df2: pd, df1_name: str, df2_name: str, name: str) -
     plot.scatter(df1, df2)
     plot.xlabel(df1_name)
     plot.ylabel(df2_name)
-    plot.title(f"{df1_name} vs {df2_name}")
+    plot.title(f"{name} - {df1_name} vs {df2_name}")
     plot.savefig(file_label)
     
     #cleans up memory
@@ -121,7 +121,6 @@ def create_phase_lots(data: pd, title: str) -> None:
     
     return
 
-
     #2D Phase plot
 def two_D_phase_plot(data: list, plot_name: str) -> None:
     #create labels
@@ -139,7 +138,6 @@ def two_D_phase_plot(data: list, plot_name: str) -> None:
     plot.close()
     del file_label
     return
-    
     
     #3D Plot
 def three_D_phase_plot(data: list, plot_name: str) -> None:
@@ -165,7 +163,6 @@ def three_D_phase_plot(data: list, plot_name: str) -> None:
     return
     
 #custom classes
-
 
 #execute if main
 
