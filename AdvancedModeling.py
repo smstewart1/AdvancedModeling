@@ -1,10 +1,11 @@
 #libraries
 import pandas as pd 
-import matplotlib.pyplot as plot 
+import matplotlib.pyplot as plt 
 import numpy as np
-from sklearn.cluster import KMeans, DBSCAN
-from sklearn.metrics import silhouette_score
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.preprocessing import StandardScaler
+import matplotlib.cm as cm
 
 #global variables
 DJI_data: str = "./DJI.csv"
@@ -38,9 +39,12 @@ def main() -> None:
     #create a normalized array for fitting
 
     
-    #K means scaling
+    #K means clustering
     # Sensitivity analysis for number of clusters
-   
+    #k_means(DJI, "Dow Jones Industrial Average")
+    
+    #plotting clusters
+    Cluster_plots("Open", "Close", "Difference", 4, DJI, "Down Jones Industrial Average")
     
     #clean up memeory
     del DJI
@@ -49,43 +53,137 @@ def main() -> None:
     return
 
 
-#custom functions
+#custom functions-------------------------------------------------------------------------------------------
+
+    #plot 3D clusters - thanks for SKLearn website
+def Cluster_plots(xvar: str, yvar: str, zvar: str, clusters: int, df: pd, title: str) -> None:
+    #check for empty dataframe
+    if len(df) == 0:
+        print("Empty Dataframe - Cluster Plot")
+        return
+    
+    #extracts out the relevant dataframe
+    dataframe: pd = df[[xvar, yvar, zvar]].copy()
+    
+    #createa a subplot with 1 row and 2 columns
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig.set_size_inches(18, 7)
+    
+    #subplot for the silhouete plot 
+    ax1.set_xlim([-0.1, 1])
+    ax1.set_ylim([0, len(dataframe) + (clusters + 1) * 10])
+    ax1.set_title(f"Silhouette plot for {xvar}-{yvar}-{zvar}: {title}")
+    ax1.set_xlabel("The silhouette coefficient values")
+    ax1.set_ylabel("Cluster label")
+    
+    #createa a cluster model
+    clusterer = KMeans(n_clusters = clusters, random_state = 42)
+    cluster_labels = clusterer.fit_predict(dataframe)
+        
+    # Aggregate the silhouette scores for samples belonging to cluster, and sort them
+    sample_silhouette_values = silhouette_samples(dataframe, cluster_labels)
+    y_lower = 10
+    for i in range(clusters):
+        # Aggregate the silhouette scores for samples belonging to
+        # cluster i, and sort them
+        ith_cluster_silhouette_values = sample_silhouette_values[cluster_labels == i]
+        ith_cluster_silhouette_values.sort()
+        size_cluster_i = ith_cluster_silhouette_values.shape[0]
+        y_upper = y_lower + size_cluster_i
+        color = cm.nipy_spectral(float(i) / clusters)
+        ax1.fill_betweenx(np.arange(y_lower, y_upper), 0, ith_cluster_silhouette_values, facecolor = color, edgecolor = color, alpha = 0.7)
+
+        # Label the silhouette plots with their cluster numbers at the middle
+        ax1.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
+
+        # Compute the new y_lower for next plot
+        y_lower = y_upper + 10  # 10 for the 0 samples
+    
+    #build up cluster plot
+    colors = cm.nipy_spectral(cluster_labels.astype(float) / clusters)
+    ax2.scatter(dataframe.iloc[:, 0], dataframe.iloc[:, 1], marker = ".", s = 30, lw = 0, alpha = 0.7, c = colors, edgecolor = "k")
+    
+    #label clusters
+    centers = clusterer.cluster_centers_
+    
+        # Draw white circles at cluster centers
+    ax2.scatter(centers[:, 0], centers[:, 1], marker = "o", c = "white", alpha = 1, s = 200, edgecolor = "k")
+    
+    for i, c in enumerate(centers):
+        ax2.scatter(c[0], c[1], marker = "$%d$" % i, alpha = 1, s = 50, edgecolor = "k")
+        
+    ax2.set_title(f"Clustering of {title}")
+    ax2.set_xlabel(xvar)
+    ax2.set_ylabel(yvar)
+        
+    plt.suptitle("Silhouette analysis for KMeans clustering on sample data with n_clusters = %d" %clusters, fontsize = 14, fontweight = "bold")
+    
+    plt.savefig(f"Cluster Plot {xvar} {yvar} {zvar} {title}.tiff")
+    plt.clf()
+    plt.close()
+    
+    del dataframe
+    del centers
+    del colors
+    del y_lower
+    del sample_silhouette_values
+    
+    return
+
     #run the k-means analysis of a dataset
 def k_means(dataframe: pd, title_info: str) -> None:
+    #test for empty dataframe
+    if len(dataframe) == 0:
+        print("Empty Data Frame - k_mean function")
+        return
+    
     #remove only the relevant columns
-    df2 = dataframe[features]
+    df2 = dataframe[features].copy()
+    df2["Difference"] = dataframe["Difference"].copy()
     df2['Day'] = range(len(df2))
     
     #normals and find best k-means
     cluster_range = range(2, 10)
-    silhouette_scores = []
     
     scaler = StandardScaler()
-    NData = scaler.fit_transform(df2) #change date to a number and drop the date column
+    scaled = scaler.fit_transform(df2) #change date to a number and drop the date column
+    df2 = pd.DataFrame(data = scaled, columns = df2.columns)
     
     for i, j in enumerate(features):
         for k in range(i + 1, len(features)):
+            silhouette_scores = []
             for n_clusters in cluster_range:
                 kmeans = KMeans(n_clusters = n_clusters, random_state = 42)
-                kmeans_labels = kmeans.fit_predict(df2[j, features[k], "Difference"])
-                silhouette_avg = silhouette_score(df2[j, features[k], "Difference"], kmeans_labels)
+                kmeans_labels = kmeans.fit_predict(df2[[j, features[k], "Difference"]])
+                silhouette_avg = silhouette_score(df2[[j, features[k], "Difference"]], kmeans_labels)
                 silhouette_scores.append(silhouette_avg)
-                k_means_plots(j, features[k], cluster_range, silhouette_scores, title_info)
-        
+            k_means_plots(j, features[k], cluster_range, silhouette_scores, title_info)
+    
+    del cluster_range
+    del silhouette_scores
+    del df2
+    del scaled
+    
     return
 
     #plot and save k-means
 def k_means_plots(xvar: str, yvar: str, cluster_range: list, silhouette_scores: list, title_info: str) -> None:
-    plot.figure(figsize=(10, 6))
-    plot.plot(cluster_range, silhouette_scores, marker='o', linestyle='--')
-    plot.title('Sensitivity Analysis: Number of Clusters')
-    plot.xlabel('Number of Clusters')
-    plot.ylabel('Silhouette Score')
-    plot.grid(True)
-    plot.savefig('sensitivity_analysis.png')
-    plot.savefig(f"{title_info} {xvar} {yvar}.tiff")
-    plot.clf
-    plot.clear
+    #test for empty data sets
+    if len(silhouette_scores) == 0 or len(cluster_range) == 0:
+        print("Empty Silhouette Scores")
+        return
+    
+    #create plot    
+    plt.figure(figsize=(10, 6))
+    plt.plot(cluster_range, silhouette_scores, marker='o', linestyle='--')
+    plt.title(f'Sensitivity Analysis {xvar} - {yvar} - Difference: Number of Clusters')
+    plt.xlabel('Number of Clusters')
+    plt.ylabel('Silhouette Score')
+    plt.grid(True)
+    plt.savefig('sensitivity_analysis.png')
+    plt.savefig(f"{title_info} {xvar} {yvar}.tiff")
+    plt.clf()
+    plt.close()
     return
 
 
@@ -137,15 +235,15 @@ def plotter_support(df1: pd, df2: pd, df1_name: str, df2_name: str, name: str) -
     file_label = f"{name}_{df1_name}_vs_{df2_name}.tiff"
        
     #generates plos
-    plot.scatter(df1, df2)
-    plot.xlabel(df1_name)
-    plot.ylabel(df2_name)
-    plot.title(f"{name} - {df1_name} vs {df2_name}")
-    plot.savefig(file_label)
+    plt.scatter(df1, df2)
+    plt.xlabel(df1_name)
+    plt.ylabel(df2_name)
+    plt.title(f"{name} - {df1_name} vs {df2_name}")
+    plt.savefig(file_label)
     
     #cleans up memory
-    plot.clf()
-    plot.close()
+    plt.clf()
+    plt.close()
     del file_label
     return
 
@@ -182,15 +280,15 @@ def two_D_phase_plot(data: list, plot_name: str) -> None:
     file_label = f"2Dphase_plot_{plot_name}.tiff"
     
     #generates plots
-    plot.scatter(x = data[0], y = data[1], s = 1)
-    plot.xlabel("N")
-    plot.ylabel("N + 1" )
-    plot.title(f"Phase Plot {plot_name}")
-    plot.savefig(file_label)
+    plt.scatter(x = data[0], y = data[1], s = 1)
+    plt.xlabel("N")
+    plt.ylabel("N + 1" )
+    plt.title(f"Phase Plot {plot_name}")
+    plt.savefig(file_label)
     
     #cleans up memory
-    plot.clf()
-    plot.close()
+    plt.clf()
+    plt.close()
     del file_label
     return
     
@@ -200,18 +298,18 @@ def three_D_phase_plot(data: list, plot_name: str) -> None:
     file_label = f"3Dphase_plot_{plot_name}.tiff"
     
     #generates plots
-    fig = plot.figure()
+    fig = plt.figure()
     ax = fig.add_subplot(projection = '3d')
     ax.scatter(data[0], data[1], data[2])
     ax.set_xlabel("N")
     ax.set_ylabel("N + 1" )
     ax.set_zlabel("N + 2")
-    plot.title(f"3D Phase Plot {plot_name}")
-    plot.savefig(file_label)
+    plt.title(f"3D Phase Plot {plot_name}")
+    plt.savefig(file_label)
     
     #cleans up memory
-    plot.clf()
-    plot.close()
+    plt.clf()
+    plt.close()
     del fig
     del ax
     del file_label
@@ -223,18 +321,18 @@ def three_D_plot(data: list, xvar: str, yvar: str, plot_name: str) -> None:
     file_label = f"3D_plot_{plot_name} {xvar} {yvar} difference.tiff"
     
     #generates plots
-    fig = plot.figure()
+    fig = plt.figure()
     ax = fig.add_subplot(projection = '3d')
     ax.scatter(data[xvar], data[yvar], data["Difference"])
     ax.set_xlabel(xvar)
     ax.set_ylabel(yvar)
     ax.set_zlabel("Difference")
-    plot.title(f"3D Phase Plot {plot_name}")
-    plot.savefig(file_label)
+    plt.title(f"3D Phase Plot {plot_name}")
+    plt.savefig(file_label)
     
     #cleans up memory
-    plot.clf()
-    plot.close()
+    plt.clf()
+    plt.close()
     del fig
     del ax
     del file_label
