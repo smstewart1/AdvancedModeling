@@ -7,6 +7,8 @@ import pytest
 import pandas as pd 
 import matplotlib.pyplot as plot 
 import numpy as np
+import AdvancedModeling 
+from AdvancedModeling import k_means
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
