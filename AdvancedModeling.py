@@ -45,7 +45,7 @@ def main() -> None:
     
     #K means clustering
     # Sensitivity analysis for number of clusters
-    #k_means(DJI, "Dow Jones Industrial Average")
+    #k_means(DJI, features, "Dow Jones Industrial Average")
     
     #plotting clusters
     Cluster_plots("Open", "Close", "Difference", 4, DJI, "Down Jones Industrial Average")
@@ -251,10 +251,15 @@ def Cluster_plots(xvar: str, yvar: str, zvar: str, clusters: int, df: pd, title:
     return
 
     #run the k-means analysis of a dataset
-def k_means(dataframe: pd, title_info: str) -> None:
+def k_means(dataframe: pd, features: list, title_info: str) -> None:
     #test for empty dataframe
     if len(dataframe) == 0:
         print("Empty Data Frame - k_mean function")
+        return
+    
+    #check to make sure there are at least 4 data points per cluster
+    if len(dataframe) < 10 * 4:
+        print("Not enough data points for cluster analysis")
         return
     
     #remove only the relevant columns
