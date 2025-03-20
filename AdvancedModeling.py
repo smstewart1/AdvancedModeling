@@ -4,8 +4,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples, silhouette_score
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model, metrics, datasets
 from sklearn.preprocessing import StandardScaler
 import matplotlib.cm as cm
+from scipy import stats
+
 
 #global variables
 DJI_data: str = "./DJI.csv"
@@ -54,7 +58,66 @@ def main() -> None:
 
 
 #custom functions-------------------------------------------------------------------------------------------
-
+        ##create linear regressions
+def Multi_linear_regressions(dataframe: pd, yvar: str, title: str, *args) -> None:
+    #check for an empty dataframe
+    if len(dataframe) == 0:
+        print("Empty Dataframe - Linear Regression")
+        return 
+    
+    #checks that features have been included
+    if len(args) == 0:
+        print("No features are specificed - Linear Regression")
+        return
+    
+    #generates feature list
+    f_list = []
+    for i in args:
+        f_list.append(i)
+            
+    #perform linear regression
+    x: pd = dataframe[f_list].copy()
+    y: pd = dataframe[yvar].copy()
+    
+    #build up the training data and fit the linear model
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.3, random_state = 42)
+    reg = linear_model.LinearRegression()
+    reg.fit(x_train, y_train)
+    
+    #plot the linear regression
+    
+        #plot the training data and residuals
+    plt.scatter(reg.predict(x_train), reg.predict(x_train) - y_train, color = "green", s = 10, label = "Training Data") 
+    
+        #plot the validation set
+    plt.scatter(reg.predict(x_test), reg.predict(x_test) - y_test, color = "blue", s = 10, label = "Validation Data") 
+    
+    #create list of args for title
+    
+    text = ""
+    for i in f_list:
+        text = text + i +" "
+    
+    plt.xlabel("Data Point")
+    plt.ylabel("Residuals")
+    plt.title(f"Residual Plots from Linear Regressions\n{text} vs {yvar} - {title}")
+    
+    plt.savefig(f"LR Residuals {args} vs {yvar} - {title}.tiff")
+    
+    plt.clf()
+    plt.close()
+    
+    del f_list
+    del text
+    del x
+    del y
+    del x_train
+    del y_train
+    del x_test
+    del y_test
+    
+    return 
+    
     #plot 3D clusters - thanks for SKLearn website
 def Cluster_plots(xvar: str, yvar: str, zvar: str, clusters: int, df: pd, title: str) -> None:
     #check for empty dataframe
@@ -249,8 +312,8 @@ def plotter_support(df1: pd, df2: pd, df1_name: str, df2_name: str, name: str) -
 
     #develop the array for a phase plot
 def phase_plot_data(dataframe: pd, phases: int) -> list:
-    #makes sure the number of phases is an integer
-    if type(phases) != int:
+    #makes sure the number of phases is an integer and that the dataframe has data
+    if type(phases) != int or len(dataframe) == 0:
         return 
     
     initial_list: list = dataframe.tolist()
