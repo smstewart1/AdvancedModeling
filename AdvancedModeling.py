@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn import linear_model, metrics, datasets
 from sklearn.preprocessing import StandardScaler
 import matplotlib.cm as cm
-from scipy import stats
+from sklearn import metrics
 
 
 #global variables
@@ -58,6 +58,63 @@ def main() -> None:
 
 
 #custom functions-------------------------------------------------------------------------------------------
+
+    #Logit (machine learning)
+def logistic_modeling(yvar: str, dataframe: pd, title: str, *args) -> None:
+    #verify a complete dataframe
+    if len(dataframe) == 0:
+        print("Empty Dataframe - Logistic Regression")
+        return
+    
+    #verify features have been lister
+    if len(args) == 0:
+        print("No features gives - Logistic Regression")
+        return
+    
+    f_list: list = []
+    sf_list: str = ""
+    for i in args:
+        f_list.append(i)
+        sf_list = sf_list + i + " "
+
+    #assemble data
+    X: pd = dataframe[f_list].copy()
+    Y: pd = dataframe[yvar].copy()
+    
+    #train the model
+    x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size = 0.3, random_state = 42)
+    
+    logr = linear_model.LogisticRegression()
+    logr.fit(x_train, y_train)
+    
+    #test predictions
+    predicted = logr.predict(x_test)
+    
+    #make confusion matrix
+    confusion_matrix = metrics.confusion_matrix(y_train, predicted)
+    
+    cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix = confusion_matrix, display_labels = ["Losses", "Gains"])
+    cm_display.plot()
+    
+    plt.savefig(f"{sf_list} vs {yvar} ML Confusion.tiff")
+    
+    plt.clf()
+    plt.close()
+    
+    #memory cleanup
+    del cm_display
+    del confusion_matrix
+    del predicted
+    del X
+    del Y
+    del x_test
+    del x_train
+    del y_test
+    del y_train
+    del f_list
+    del sf_list
+    
+    return
         ##create linear regressions
 def Multi_linear_regressions(dataframe: pd, yvar: str, title: str, *args) -> None:
     #check for an empty dataframe
@@ -265,9 +322,17 @@ def custom_clean_up(dataframe: pd) -> pd:
     for i in features:
         dataframe[i] = dataframe[i].astype(float)
         
+    dataframe["Gain"] = dataframe["Diffrence"].map(gain_day)
+        
     #create a difference columns
     dataframe["Difference"] = dataframe["Close"] - dataframe["Open"]
     return dataframe
+
+    #create conditions for binary outcomes on changes
+def gain_day(value: float) -> int:
+    if value > 0:
+        return 1
+    return 0
 
     #develops and returns correlations with correplation plots
 def pre_screen_information(dataframe: pd, output_prefix: str) -> None:
