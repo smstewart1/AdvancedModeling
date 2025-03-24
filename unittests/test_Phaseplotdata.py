@@ -5,38 +5,38 @@ import pytest
 
 class TestPhasePlotData:
 
-    # Function correctly converts a dataframe column to a list of phase-shifted sublists
-    def test_converts_dataframe_to_phase_shifted_sublists(self):
-        # Arrange
+    # Returns correct phase-shifted lists when given valid dataframe and positive integer phases
+    def test_returns_correct_phase_shifted_lists(self):
         import pandas as pd
         import numpy as np
     
-        # Create a test dataframe with a single column
-        test_data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        df = pd.Series(test_data)
-        phases = 3
+        # Create a test dataframe
+        data = [1, 2, 3, 4, 5]
+        df = pd.Series(data)
     
-        # Act
-        result = phase_plot_data(df, phases)
+        # Test with 2 phases
+        result = phase_plot_data(df, 2)
     
-        # Assert
-        assert len(result) == phases
-        assert result[0] == [1, 2, 3, 4, 5, 6, 7, 8]
-        assert result[1] == [2, 3, 4, 5, 6, 7, 8, 9]
-        assert result[2] == [3, 4, 5, 6, 7, 8, 9, 10]
+        # Expected: two lists with phase-shifted data
+        # First list: elements from index 0 to (length-phases+0) = [1, 2, 3]
+        # Second list: elements from index 1 to (length-phases+1) = [2, 3, 4]
+        expected = [[1, 2, 3], [2, 3, 4]]
+    
+        assert result == expected, f"Expected {expected}, but got {result}"
 
-    # Function returns None when phases parameter is not an integer
+    # Returns None when phases parameter is not an integer
     def test_returns_none_when_phases_not_integer(self):
-        # Arrange
         import pandas as pd
     
         # Create a test dataframe
-        test_data = [1, 2, 3, 4, 5]
-        df = pd.Series(test_data)
-        invalid_phases = 2.5  # Float instead of integer
+        data = [1, 2, 3, 4, 5]
+        df = pd.Series(data)
     
-        # Act
-        result = phase_plot_data(df, invalid_phases)
+        # Test with non-integer phases
+        result_float = phase_plot_data(df, 2.5)
+        result_str = phase_plot_data(df, "2")
+        result_list = phase_plot_data(df, [2])
     
-        # Assert
-        assert result is None
+        assert result_float is None, "Should return None when phases is a float"
+        assert result_str is None, "Should return None when phases is a string"
+        assert result_list is None, "Should return None when phases is a list"

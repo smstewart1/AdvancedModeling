@@ -396,12 +396,17 @@ def phase_plot_data(dataframe: pd, phases: int) -> list:
 
     #create phase plots
 def create_phase_lots(data: pd, title: str) -> None:
+    #check for empty dataframe
+    if len(data) == 0:
+        print("Empty Dataframe - Phase Plots")
+        return
+    
     #generate phase plots
     for i in ["Open", "Close", "High", "Low"]:
-        TDPhaseData = phase_plot_data(data[i], 2)
+        TDPhaseData = phase_plot_data(data[i].tolist(), 2)
         two_D_phase_plot(TDPhaseData, f"{title} - {i}")
         del TDPhaseData
-        TDPhaseData = phase_plot_data(data[i], 3)
+        TDPhaseData = phase_plot_data(data[i].tolist(), 3)
         three_D_phase_plot(TDPhaseData, f"{title} - {i}")
         del TDPhaseData
     
@@ -437,7 +442,7 @@ def three_D_phase_plot(data: list, plot_name: str) -> None:
     ax.set_xlabel("N")
     ax.set_ylabel("N + 1" )
     ax.set_zlabel("N + 2")
-    plt.title(f"3D Phase Plot {plot_name}")
+    ax.title(f"3D Phase Plot {plot_name}")
     plt.savefig(file_label)
     
     #cleans up memory
@@ -460,7 +465,7 @@ def three_D_plot(data: list, xvar: str, yvar: str, plot_name: str) -> None:
     ax.set_xlabel(xvar)
     ax.set_ylabel(yvar)
     ax.set_zlabel("Difference")
-    plt.title(f"3D Phase Plot {plot_name}")
+    ax.title(f"3D Phase Plot {plot_name}")
     plt.savefig(file_label)
     
     #cleans up memory

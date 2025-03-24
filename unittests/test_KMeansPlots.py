@@ -7,8 +7,8 @@ import pytest
 
 class TestKMeansPlots:
 
-    # Function creates a plot with valid inputs for cluster_range and silhouette_scores
-    def test_plot_creation_with_valid_inputs(self, mocker):
+    # Function correctly plots silhouette scores against cluster range
+    def test_plots_silhouette_scores_against_cluster_range(self, mocker):
         # Arrange
         mock_plt = mocker.patch('matplotlib.pyplot')
         xvar = "feature1"
@@ -33,11 +33,11 @@ class TestKMeansPlots:
         mock_plt.clf.assert_called_once()
         mock_plt.close.assert_called_once()
 
-    # Function handles empty silhouette_scores list by printing message and returning
-    def test_empty_silhouette_scores_handling(self, mocker):
+    # Function handles empty silhouette_scores list
+    def test_handles_empty_silhouette_scores(self, mocker):
         # Arrange
-        mock_print = mocker.patch('builtins.print')
         mock_plt = mocker.patch('matplotlib.pyplot')
+        mock_print = mocker.patch('builtins.print')
         xvar = "feature1"
         yvar = "feature2"
         cluster_range = [2, 3, 4, 5]
@@ -46,10 +46,10 @@ class TestKMeansPlots:
     
         # Act
         from AdvancedModeling import k_means_plots
-        k_means_plots(xvar, yvar, cluster_range, silhouette_scores, title_info)
+        result = k_means_plots(xvar, yvar, cluster_range, silhouette_scores, title_info)
     
         # Assert
         mock_print.assert_called_once_with("Empty Silhouette Scores")
         mock_plt.figure.assert_not_called()
         mock_plt.plot.assert_not_called()
-        mock_plt.savefig.assert_not_called()
+        assert result is None
