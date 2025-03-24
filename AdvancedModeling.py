@@ -197,20 +197,20 @@ def Cluster_plots(xvar: str, yvar: str, zvar: str, clusters: int, df: pd, title:
     ax1.set_ylabel("Cluster label")
     
     #createa a cluster model
-    clusterer = KMeans(n_clusters = clusters, random_state = 42)
-    cluster_labels = clusterer.fit_predict(dataframe)
+    clusterer: object = KMeans(n_clusters = clusters, random_state = 42)
+    cluster_labels: list = clusterer.fit_predict(dataframe)
         
     # Aggregate the silhouette scores for samples belonging to cluster, and sort them
-    sample_silhouette_values = silhouette_samples(dataframe, cluster_labels)
-    y_lower = 10
+    sample_silhouette_values: list = silhouette_samples(dataframe, cluster_labels)
+    y_lower: int = 10
     for i in range(clusters):
         # Aggregate the silhouette scores for samples belonging to
         # cluster i, and sort them
-        ith_cluster_silhouette_values = sample_silhouette_values[cluster_labels == i]
+        ith_cluster_silhouette_values: list = sample_silhouette_values[cluster_labels == i]
         ith_cluster_silhouette_values.sort()
-        size_cluster_i = ith_cluster_silhouette_values.shape[0]
-        y_upper = y_lower + size_cluster_i
-        color = cm.nipy_spectral(float(i) / clusters)
+        size_cluster_i: float = ith_cluster_silhouette_values.shape[0]
+        y_upper: float = y_lower + size_cluster_i
+        color: object = cm.nipy_spectral(float(i) / clusters)
         ax1.fill_betweenx(np.arange(y_lower, y_upper), 0, ith_cluster_silhouette_values, facecolor = color, edgecolor = color, alpha = 0.7)
 
         # Label the silhouette plots with their cluster numbers at the middle
@@ -220,11 +220,11 @@ def Cluster_plots(xvar: str, yvar: str, zvar: str, clusters: int, df: pd, title:
         y_lower = y_upper + 10  # 10 for the 0 samples
     
     #build up cluster plot
-    colors = cm.nipy_spectral(cluster_labels.astype(float) / clusters)
+    colors: list = cm.nipy_spectral(cluster_labels.astype(float) / clusters)
     ax2.scatter(dataframe.iloc[:, 0], dataframe.iloc[:, 1], marker = ".", s = 30, lw = 0, alpha = 0.7, c = colors, edgecolor = "k")
     
     #label clusters
-    centers = clusterer.cluster_centers_
+    centers: list = clusterer.cluster_centers_
     
         # Draw white circles at cluster centers
     ax2.scatter(centers[:, 0], centers[:, 1], marker = "o", c = "white", alpha = 1, s = 200, edgecolor = "k")
@@ -263,16 +263,16 @@ def k_means(dataframe: pd, features: list, title_info: str) -> None:
         return
     
     #remove only the relevant columns
-    df2 = dataframe[features].copy()
+    df2: pd = dataframe[features].copy()
     df2["Difference"] = dataframe["Difference"].copy()
     df2['Day'] = range(len(df2))
     
     #normals and find best k-means
-    cluster_range = range(2, 10)
+    cluster_range: list = range(2, 10)
     
-    scaler = StandardScaler()
-    scaled = scaler.fit_transform(df2) #change date to a number and drop the date column
-    df2 = pd.DataFrame(data = scaled, columns = df2.columns)
+    scaler: object = StandardScaler()
+    scaled: object = scaler.fit_transform(df2) #change date to a number and drop the date column
+    df2: pd = pd.DataFrame(data = scaled, columns = df2.columns)
     
     for i, j in enumerate(features):
         for k in range(i + 1, len(features)):
@@ -415,7 +415,7 @@ def create_phase_lots(data: pd, title: str) -> None:
     #2D Phase plot
 def two_D_phase_plot(data: list, plot_name: str) -> None:
     #create labels
-    file_label = f"2Dphase_plot_{plot_name}.tiff"
+    file_label: str = f"2Dphase_plot_{plot_name}.tiff"
     
     #generates plots
     plt.scatter(x = data[0], y = data[1], s = 1)
@@ -433,10 +433,10 @@ def two_D_phase_plot(data: list, plot_name: str) -> None:
     #3D Phase Plot
 def three_D_phase_plot(data: list, plot_name: str) -> None:
     #create labels
-    file_label = f"3Dphase_plot_{plot_name}.tiff"
+    file_label: str = f"3Dphase_plot_{plot_name}.tiff"
     
     #generates plots
-    fig = plt.figure()
+    fig: object = plt.figure()
     ax = fig.add_subplot(projection = '3d')
     ax.scatter(data[0], data[1], data[2])
     ax.set_xlabel("N")
@@ -456,11 +456,11 @@ def three_D_phase_plot(data: list, plot_name: str) -> None:
     #3D Plot vs difference
 def three_D_plot(data: list, xvar: str, yvar: str, plot_name: str) -> None:
     #create labels
-    file_label = f"3D_plot_{plot_name} {xvar} {yvar} difference.tiff"
+    file_label: str = f"3D_plot_{plot_name} {xvar} {yvar} difference.tiff"
     
     #generates plots
-    fig = plt.figure()
-    ax = fig.add_subplot(projection = '3d')
+    fig: object = plt.figure()
+    ax: object = fig.add_subplot(projection = '3d')
     ax.scatter(data[xvar], data[yvar], data["Difference"])
     ax.set_xlabel(xvar)
     ax.set_ylabel(yvar)
