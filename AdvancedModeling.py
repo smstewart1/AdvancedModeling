@@ -1,15 +1,13 @@
-#libraries
+    #libraries
 import pandas as pd 
 import matplotlib.pyplot as plt 
 import numpy as np
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_samples, silhouette_score
+from sklearn.metrics import silhouette_samples, silhouette_score, metrics
 from sklearn.model_selection import train_test_split
-from sklearn import linear_model, metrics, datasets
+from sklearn.linear_model import linear_model
 from sklearn.preprocessing import StandardScaler
 import matplotlib.cm as cm
-from sklearn import metrics
-
 
 #global variables
 DJI_data: str = "./DJI.csv"
