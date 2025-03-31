@@ -3,11 +3,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_samples, silhouette_score, metrics
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import silhouette_samples, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix, silhouette_score
 from sklearn.linear_model import linear_model
 from sklearn.preprocessing import StandardScaler
 import matplotlib.cm as cm
+import seaborn as sns
 
 # global variables
 DJI_data: str = "./DJI.csv"
@@ -46,8 +49,11 @@ def main() -> None:
     # k_means(DJI, features, "Dow Jones Industrial Average")
 
     # plotting clusters
-    Cluster_plots("Open", "Close", "Difference", 4,
-                  DJI, "Down Jones Industrial Average")
+    # Cluster_plots("Open", "Close", "Difference", 4,
+    #               DJI, "Down Jones Industrial Average")
+
+    # KNN fitting
+    KNN_fitting(DJI, "Difference", "Dow Jones Industrial")
 
     # clean up memeory
     del DJI
@@ -57,8 +63,86 @@ def main() -> None:
 
 
 # custom functions---
+    # K nearest neighbors
+def KNN_fitting(dataframe: pd, y_target: str, title: str) -> None:
+
+    # verifies that data frame exists as does the target
+    if len(dataframe) == 0:
+        print("Empty Dataframe - KNN")
+        return
+
+    if y_target not in dataframe.columns:
+        print("Target not in Dataframe - KNN")
+        return
+
+    # create the data sets
+    x_dataset: pd = dataframe.loc[:, dataframe.columns != y_target]
+    target: pd = dataframe.loc[:, dataframe.columns == y_target]
+
+    # split up traning data set
+    x_train, x_test, y_train, y_test = train_test_split(
+        x_dataset, target, test_size=0.3, random_state=42)
+
+    # asses models
+    train_accuracy = []
+    test_accuracy = []
+    x_range = [i for i in range(2, 7)]
+    for i in range(2, 7):
+
+        # build and train the model
+        knn = KNeighborsClassifier(n_neighbors=i)
+        knn.fit(x_train, y_train)
+
+        # give a confusion matrix
+        y_pred = knn.predict(x_test)
+        cm = confusion_matrix(y_test, y_pred)
+
+        # plot the confution matrix
+        f, ax = plt.subplots(figsize=(5, 5))
+        sns.heatmap(cm, annot=True, linewidths=0.5,
+                    linecolor="green", fmt=".0f", ax=ax)
+        plt.xlabel("Predicted")
+        plt.ylabel("Training Data")
+        plt.savefig(f"K = {i} CM {title}.tiff")
+
+        # recover scores
+        train_accuracy.append(knn.score(x_train, y_train))
+        test_accuracy.append(knn.score(x_test, y_test))
+
+        # clean out memory
+        plt.clf()
+        plt.close()
+        del f
+        del ax
+        del cm
+        del y_pred
+
+    # generate a plot
+    plt.plot(x_range, test_accuracy, label='Test Data Accuracy')
+    plt.plot(x_range, train_accuracy, label="Training Data Accuracy")
+    plt.legend()
+    plt.xlabel("Neighbors")
+    plt.ylabel("Accuracy")
+    plt.ylim([0, 1])
+    plt.title("KNN Model Fit")
+    plt.savefig(f"KNN {title}.tiff")
+    plt.clf()
+    plt.close()
+
+    # clean up memory
+    del train_accuracy
+    del test_accuracy
+    del x_range
+    del x_test
+    del x_train
+    del y_test
+    del y_train
+
+    return
 
     # Logit (machine learning)
+
+
 def logistic_modeling(yvar: str, dataframe: pd, title: str, *args) -> None:
     # verify a complete dataframe
     if len(dataframe) == 0:
@@ -91,10 +175,10 @@ def logistic_modeling(yvar: str, dataframe: pd, title: str, *args) -> None:
     predicted = logr.predict(x_test)
 
     # make confusion matrix
-    confusion_matrix = metrics.confusion_matrix(y_train, predicted)
+    cm = confusion_matrix(y_train, predicted)
 
-    cm_display = metrics.ConfusionMatrixDisplay(
-        confusion_matrix=confusion_matrix, display_labels=["Losses", "Gains"])
+    cm_display = ConfusionMatrixDisplay(
+        confusion_matrix=cm, display_labels=["Losses", "Gains"])
     cm_display.plot()
 
     plt.savefig(f"{sf_list} vs {yvar} ML Confusion.tiff")
@@ -104,7 +188,7 @@ def logistic_modeling(yvar: str, dataframe: pd, title: str, *args) -> None:
 
     # memory cleanup
     del cm_display
-    del confusion_matrix
+    del cm
     del predicted
     del X
     del Y
