@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.cluster import KMeans
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import silhouette_samples, ConfusionMatrixDisplay
@@ -63,7 +64,52 @@ def main() -> None:
 
 
 # custom functions---
+    # Decision tree
+def DT(dataframe: pd, y_target: str, title: str) -> None:
+    # verifies that data frame exists as does the target
+    if len(dataframe) == 0:
+        print("Empty Dataframe - DT")
+        return
+
+    if y_target not in dataframe.columns:
+        print("Target not in Dataframe - DT")
+        return
+
+    # check to see if date evists, and if so, remove it
+    if "Date" in dataframe.columns:
+        dataframe = dataframe.loc[:, dataframe.columns != "Date"]
+
+    # create the data sets
+    x_dataset: np = dataframe.loc[:, dataframe.columns != y_target].to_numpy()
+    target: np = dataframe.loc[:, dataframe.columns == y_target].to_numpy()
+
+    # split up traning data set
+    x_train, x_test, y_train, y_test = train_test_split(
+        x_dataset, target, test_size=0.3, random_state=42)
+
+    # train decision tree
+    dtree = DecisionTreeClassifier()
+    dtree = dtree.fit(x_train, y_train)
+
+    # give a confusion matrix
+    y_pred = dtree.predict(x_test)
+    cm = confusion_matrix(y_test, y_pred)
+
+    # plot the confution matrix
+    f, ax = plt.subplots(figsize=(5, 5))
+    sns.heatmap(cm, annot=True, linewidths=0.5,
+                linecolor="green", fmt=".0f", ax=ax)
+    plt.xlabel("Predicted")
+    plt.ylabel("Training Data")
+    plt.savefig(f"DT {title}.tiff")
+    plt.clf()
+    plt.close()
+
+    return
+
     # K nearest neighbors
+
+
 def KNN_fitting(dataframe: pd, y_target: str, title: str) -> None:
 
     # verifies that data frame exists as does the target
