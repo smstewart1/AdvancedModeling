@@ -7,7 +7,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import silhouette_samples, ConfusionMatrixDisplay
 from sklearn.metrics import confusion_matrix, silhouette_score
-from sklearn.linear_model import linear_model
+from sklearn import linear_model
 from sklearn.preprocessing import StandardScaler
 import matplotlib.cm as cm
 import seaborn as sns
@@ -53,7 +53,7 @@ def main() -> None:
     #               DJI, "Down Jones Industrial Average")
 
     # KNN fitting
-    KNN_fitting(DJI, "Difference", "Dow Jones Industrial")
+    KNN_fitting(DJI, "Gain", "Dow Jones Industrial")
 
     # clean up memeory
     del DJI
@@ -75,9 +75,15 @@ def KNN_fitting(dataframe: pd, y_target: str, title: str) -> None:
         print("Target not in Dataframe - KNN")
         return
 
+    # check to see if date evists, and if so, remove it
+    if "Date" in dataframe.columns:
+        dataframe = dataframe.loc[:, dataframe.columns != "Date"]
+
     # create the data sets
-    x_dataset: pd = dataframe.loc[:, dataframe.columns != y_target]
-    target: pd = dataframe.loc[:, dataframe.columns == y_target]
+    x_dataset: np = dataframe.loc[:, dataframe.columns != y_target].to_numpy()
+    target: np = dataframe.loc[:, dataframe.columns == y_target].to_numpy()
+
+    target = target.ravel()
 
     # split up traning data set
     x_train, x_test, y_train, y_test = train_test_split(
@@ -442,10 +448,14 @@ def custom_clean_up(dataframe: pd) -> pd:
     for i in features:
         dataframe[i] = dataframe[i].astype(float)
 
-    dataframe["Gain"] = dataframe["Diffrence"].map(gain_day)
+    # convert date column to date
+    dataframe["Date"] = pd.to_datetime(dataframe["Date"], format='%m/%d/%Y')
 
     # create a difference columns
     dataframe["Difference"] = dataframe["Close"] - dataframe["Open"]
+
+    dataframe["Gain"] = dataframe["Difference"].map(gain_day)
+
     return dataframe
 
     # create conditions for binary outcomes on changes
