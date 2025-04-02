@@ -8,6 +8,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import silhouette_samples, ConfusionMatrixDisplay
 from sklearn.metrics import confusion_matrix, silhouette_score
+from sklearn.metrics import roc_curve
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn import linear_model
 from sklearn.preprocessing import StandardScaler
 import matplotlib.cm as cm
@@ -54,8 +56,10 @@ def main() -> None:
     #               DJI, "Down Jones Industrial Average")
 
     # KNN fitting
-    KNN_fitting(DJI, "Gain", "Dow Jones Industrial")
+    # KNN_fitting(DJI, "Gain", "Dow Jones Industrial")
 
+    # Gradient Boosted Decision Tree
+    GBDT(DJI, "Gain", "Down Jones Industial Average")
     # clean up memeory
     del DJI
     # del SAP
@@ -64,7 +68,94 @@ def main() -> None:
 
 
 # custom functions---
+    # Gradiaent Boosted Decision tree with ROC
+def GBDT(dataframe: pd, y_target: str, title: str) -> None:
+    # verifies that data frame exists as does the target
+    if len(dataframe) == 0:
+        print("Empty Dataframe - DT")
+        return
+
+    if y_target not in dataframe.columns:
+        print("Target not in Dataframe - DT")
+        return
+
+    # check to see if date evists, and if so, remove it
+    if "Date" in dataframe.columns:
+        dataframe = dataframe.loc[:, dataframe.columns != "Date"]
+
+    # create the data sets
+    x_dataset: np = dataframe.loc[:, dataframe.columns != y_target].to_numpy()
+    target: np = dataframe.loc[:, dataframe.columns == y_target].to_numpy()
+
+    # split up traning data set
+    x_train, x_test, y_train, y_test = train_test_split(
+        x_dataset, target, test_size=0.3, random_state=42)
+
+    # train decision tree
+
+    learning_rates = [10 ** (i - 3) for i in range(0, 9)]
+
+    # iterate over the learning rate
+    for i in learning_rates:
+
+        # train the model
+        GBT = GradientBoostingClassifier(
+            n_estimators=100, max_depth=4, random_state=42, learning_rate=i)
+        GBT.fit(x_train, y_train.ravel())
+
+        # test predictions
+        y_pred = GBT.predict_proba(x_test)
+        y_pred = type_one(y_pred)
+        ROC_plotter(y_test, y_pred, f"LR = {i} {title}")
+        del GBT
+        del y_pred
+
+    return
+
+    # return the type 1 probability for the gradient boosted decision tree
+
+
+def type_one(input_list: list) -> list:
+    return_list: list = []
+    for i in input_list:
+        return_list.append(i[0])
+
+    return return_list
+    # ROC plot
+
+
+def ROC_plotter(true_y: list, y_prob: list, title: str) -> None:
+    # verify lists are full
+    if len(true_y) == 0:
+        print("Empty List ROC Ploter")
+        return
+
+    # verify lists are full
+    if len(y_prob) == 0:
+        print("Empty List ROC Ploter")
+        return
+
+    # verify lists are the same length
+    if len(true_y) != len(y_prob):
+        print("Mismatched Lists ROC Ploter")
+        return
+
+    # generate ROC parameters
+    fpr, tpr, _ = roc_curve(y_true=true_y, y_score=y_prob,
+                            drop_intermediate=False)
+    plt.plot(fpr, tpr)
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(f'AUC - {title}')
+    plt.savefig(f"AUC {title}.tiff")
+    plt.clf()
+    plt.close()
+
+    return
+
     # Decision tree
+
+
 def DT(dataframe: pd, y_target: str, title: str) -> None:
     # verifies that data frame exists as does the target
     if len(dataframe) == 0:
@@ -88,12 +179,12 @@ def DT(dataframe: pd, y_target: str, title: str) -> None:
         x_dataset, target, test_size=0.3, random_state=42)
 
     # train decision tree
-    dtree = DecisionTreeClassifier()
+    dtree: object = DecisionTreeClassifier(criterion='gini', max_depth=4)
     dtree = dtree.fit(x_train, y_train)
 
     # give a confusion matrix
-    y_pred = dtree.predict(x_test)
-    cm = confusion_matrix(y_test, y_pred)
+    y_pred: list = dtree.predict(x_test)
+    cm: object = confusion_matrix(y_test, y_pred)
 
     # plot the confution matrix
     f, ax = plt.subplots(figsize=(5, 5))
@@ -129,25 +220,25 @@ def KNN_fitting(dataframe: pd, y_target: str, title: str) -> None:
     x_dataset: np = dataframe.loc[:, dataframe.columns != y_target].to_numpy()
     target: np = dataframe.loc[:, dataframe.columns == y_target].to_numpy()
 
-    target = target.ravel()
+    target: np = target.ravel()
 
     # split up traning data set
     x_train, x_test, y_train, y_test = train_test_split(
         x_dataset, target, test_size=0.3, random_state=42)
 
     # asses models
-    train_accuracy = []
-    test_accuracy = []
+    train_accuracy: list = []
+    test_accuracy: list = []
     x_range = [i for i in range(2, 7)]
     for i in range(2, 7):
 
         # build and train the model
-        knn = KNeighborsClassifier(n_neighbors=i)
+        knn: object = KNeighborsClassifier(n_neighbors=i)
         knn.fit(x_train, y_train)
 
         # give a confusion matrix
         y_pred = knn.predict(x_test)
-        cm = confusion_matrix(y_test, y_pred)
+        cm: object = confusion_matrix(y_test, y_pred)
 
         # plot the confution matrix
         f, ax = plt.subplots(figsize=(5, 5))
@@ -220,14 +311,14 @@ def logistic_modeling(yvar: str, dataframe: pd, title: str, *args) -> None:
     x_train, x_test, y_train, y_test = train_test_split(
         X, Y, test_size=0.3, random_state=42)
 
-    logr = linear_model.LogisticRegression()
+    logr: object = linear_model.LogisticRegression()
     logr.fit(x_train, y_train)
 
     # test predictions
-    predicted = logr.predict(x_test)
+    predicted: list = logr.predict(x_test)
 
     # make confusion matrix
-    cm = confusion_matrix(y_train, predicted)
+    cm: object = confusion_matrix(y_train, predicted)
 
     cm_display = ConfusionMatrixDisplay(
         confusion_matrix=cm, display_labels=["Losses", "Gains"])
@@ -268,7 +359,7 @@ def Multi_linear_regressions(dataframe: pd,
         return
 
     # generates feature list
-    f_list = []
+    f_list: list = []
     for i in args:
         f_list.append(i)
 
@@ -279,7 +370,7 @@ def Multi_linear_regressions(dataframe: pd,
     # build up the training data and fit the linear model
     x_train, x_test, y_train, y_test = train_test_split(
         x, y, test_size=0.3, random_state=42)
-    reg = linear_model.LinearRegression()
+    reg: object = linear_model.LinearRegression()
     reg.fit(x_train, y_train)
 
     # plot the linear regression
