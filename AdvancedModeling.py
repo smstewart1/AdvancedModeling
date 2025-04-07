@@ -46,29 +46,54 @@ def main() -> None:
     # three_D_plot(DJI, j, features[k], "Dow Jones Industrial Average")
 
     # create a normalized array for fitting
-
+    DJI_normed: pd = rescaler(DJI)
     # K means clustering
     #  Sensitivity analysis for number of clusters
-    # k_means(DJI, features, "Dow Jones Industrial Average")
+    # k_means(DJI_normed, features, "Dow Jones Industrial Average")
 
     # plotting clusters
     # Cluster_plots("Open", "Close", "Difference", 4,
-    #               DJI, "Down Jones Industrial Average")
+    #               DJI_normed, "Down Jones Industrial Average")
 
     # KNN fitting
-    # KNN_fitting(DJI, "Gain", "Dow Jones Industrial")
+    # KNN_fitting(DJI_normed, "Gain", "Dow Jones Industrial")
 
     # Gradient Boosted Decision Tree
-    GBDT(DJI, "Gain", "Down Jones Industial Average")
+    GBDT(DJI_normed, "Gain", "Down Jones Industial Average")
     # clean up memeory
     del DJI
+    del DJI_normed
     # del SAP
     # del NAS
     return
 
 
 # custom functions---
+
+    # rescale dataframe for analysis
+def rescaler(dataframe: pd) -> pd:
+    # test for empty dataframe
+    if len(dataframe) == 0:
+        print("Empty Dataframe - Rescaler")
+        return
+
+    # create a column filter
+    approved_list: list = ["float64", "int64"]
+
+    # rescales numeric columns
+    for i in dataframe.columns:
+        if dataframe[i].dtypes in approved_list:
+            dataframe[i] = (dataframe[i] - dataframe[i].min()) / \
+                (dataframe[i].max() - dataframe[i].min())
+
+    # cleans up memors
+    del approved_list
+
+    return dataframe
+
     # Gradiaent Boosted Decision tree with ROC
+
+
 def GBDT(dataframe: pd, y_target: str, title: str) -> None:
     # verifies that data frame exists as does the target
     if len(dataframe) == 0:
