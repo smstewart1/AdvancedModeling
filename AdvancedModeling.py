@@ -26,45 +26,60 @@ features: list = ["Open", "Close", "High", "Low"]
 def main() -> None:
     # read in csv files
     DJI: pd = pd.read_csv(DJI_data)
-    # SAP: pd = pd.read_csv(SAP_data)
-    # NAS: pd = pd.read_csv(NAS_data)
+    SAP: pd = pd.read_csv(SAP_data)
+    NAS: pd = pd.read_csv(NAS_data)
 
     # clean up files
     DJI = custom_clean_up(DJI)
-    # SAP = custom_clean_up(SAP)
-    # NAS = custom_clean_up(NAS)
+    SAP = custom_clean_up(SAP)
+    NAS = custom_clean_up(NAS)
+
+    # creates a list of files and their names
+    datasets: list = [[DJI, "Dow Jones Industrial Average"],
+                      [SAP, "Standard and Poors"], [NAS, "Nasdaq"]]
+
+    # appends with normalized array for fitting
+
+    for i, v in enumerate(datasets):
+        datasets[i].append(rescaler(v[0]))
 
     # plot correlations
-    # pre_screen_information(DJI, "Dow Jones Industrial Average")
+    # for i in datasets:
+    #     pre_screen_information(i[0], i[1])
 
     # create phase plots
-    # create_phase_lots(DJI, "Dow Jones Industrial Average")
+    # for i in datasets:
+    #     create_phase_lots(i[0], i[1])
 
     # 3d plots
-    #  for i, j in enumerate(features):
-    #      for k in range(i + 1, len(features) - 1):
-    # three_D_plot(DJI, j, features[k], "Dow Jones Industrial Average")
+    # for k in datasets:
+    #     for i, j in enumerate(features):
+    #         for k in range(i + 1, len(features) - 1):
+    #             three_D_plot(k[0], j, features[k], k[1])
 
-    # create a normalized array for fitting
-    DJI_normed: pd = rescaler(DJI)
     # K means clustering
-    #  Sensitivity analysis for number of clusters
-    # k_means(DJI_normed, features, "Dow Jones Industrial Average")
+    # for i in datasets:
+    #     k_means(i[2], features, i[1])
 
     # plotting clusters
-    # Cluster_plots("Open", "Close", "Difference", 4,
-    #               DJI_normed, "Down Jones Industrial Average")
+    # for i in datasets:
+    #     Cluster_plots("Open", "Close", "Difference", 4,
+    #                   i[2], i[1])
 
     # KNN fitting
-    # KNN_fitting(DJI_normed, "Gain", "Dow Jones Industrial")
+    # for i in datasets:
+    #     KNN_fitting(i[2], "Gain", i[1])
 
     # Gradient Boosted Decision Tree
-    GBDT(DJI_normed, "Gain", "Down Jones Industial Average")
+    for i in datasets:
+        GBDT(i[2], "Gain", i[1])
+
     # clean up memeory
+
+    del datasets
+    del SAP
     del DJI
-    del DJI_normed
-    # del SAP
-    # del NAS
+    del NAS
     return
 
 
@@ -581,11 +596,12 @@ def k_means_plots(xvar: str, yvar: str, cluster_range: list,
     # create plot
     plt.figure(figsize=(10, 6))
     plt.plot(cluster_range, silhouette_scores, marker='o', linestyle='--')
-    plt.title(
+    plt.suptitle(
         f'Sensitivity Analysis {xvar} - {yvar} - Difference:')
-    plt.subtitle('Number of Clusters')
+    plt.title('Number of Clusters')
     plt.xlabel('Number of Clusters')
     plt.ylabel('Silhouette Score')
+    plt.ylim((0, 1))
     plt.grid(True)
     plt.savefig('sensitivity_analysis.png')
     plt.savefig(f"{title_info} {xvar} {yvar}.tiff")
