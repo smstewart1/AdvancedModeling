@@ -14,6 +14,9 @@ from sklearn import linear_model
 from sklearn.preprocessing import StandardScaler
 import matplotlib.cm as cm
 import seaborn as sns
+# import os
+# #load this for os.getenv(variable)
+from dotenv import load_dotenv
 
 # global variables
 DJI_data: str = "./DJI.csv"
@@ -21,8 +24,12 @@ SAP_data: str = "./SAP.csv"
 NAS_data: str = "./NAS.csv"
 features: list = ["Open", "Close", "High", "Low"]
 
+# sensitive variables
+load_dotenv()
 
 # main function
+
+
 def main() -> None:
     # read in csv files
     DJI: pd = pd.read_csv(DJI_data)
