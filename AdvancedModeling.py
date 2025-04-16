@@ -15,7 +15,8 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.cm as cm
 import seaborn as sns
 # import os
-# #load this for os.getenv(variable)
+# load this for os.getenv(variable)
+# from
 from dotenv import load_dotenv
 
 # global variables
