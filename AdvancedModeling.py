@@ -33,9 +33,9 @@ load_dotenv()
 
 def main() -> None:
     # read in csv files
-    DJI: pd = pd.read_csv(DJI_data)
-    SAP: pd = pd.read_csv(SAP_data)
-    NAS: pd = pd.read_csv(NAS_data)
+    DJI = pd.read_csv(DJI_data)
+    SAP = pd.read_csv(SAP_data)
+    NAS = pd.read_csv(NAS_data)
 
     # clean up files
     DJI = custom_clean_up(DJI)
@@ -94,7 +94,7 @@ def main() -> None:
 # custom functions---
 
     # rescale dataframe for analysis
-def rescaler(dataframe: pd) -> pd:
+def rescaler(dataframe):
     # test for empty dataframe
     if len(dataframe) == 0:
         print("Empty Dataframe - Rescaler")
@@ -117,7 +117,7 @@ def rescaler(dataframe: pd) -> pd:
     # Gradiaent Boosted Decision tree with ROC
 
 
-def GBDT(dataframe: pd, y_target: str, title: str) -> None:
+def GBDT(dataframe, y_target: str, title: str) -> None:
     # verifies that data frame exists as does the target
     if len(dataframe) == 0:
         print("Empty Dataframe - DT")
@@ -132,8 +132,8 @@ def GBDT(dataframe: pd, y_target: str, title: str) -> None:
         dataframe = dataframe.loc[:, dataframe.columns != "Date"]
 
     # create the data sets
-    x_dataset: np = dataframe.loc[:, dataframe.columns != y_target].to_numpy()
-    target: np = dataframe.loc[:, dataframe.columns == y_target].to_numpy()
+    x_dataset = dataframe.loc[:, dataframe.columns != y_target].to_numpy()
+    target = dataframe.loc[:, dataframe.columns == y_target].to_numpy()
 
     # split up traning data set
     x_train, x_test, y_train, y_test = train_test_split(
@@ -204,7 +204,7 @@ def ROC_plotter(true_y: list, y_prob: list, title: str) -> None:
     # Decision tree
 
 
-def DT(dataframe: pd, y_target: str, title: str) -> None:
+def DT(dataframe, y_target: str, title: str) -> None:
     # verifies that data frame exists as does the target
     if len(dataframe) == 0:
         print("Empty Dataframe - DT")
@@ -219,8 +219,8 @@ def DT(dataframe: pd, y_target: str, title: str) -> None:
         dataframe = dataframe.loc[:, dataframe.columns != "Date"]
 
     # create the data sets
-    x_dataset: np = dataframe.loc[:, dataframe.columns != y_target].to_numpy()
-    target: np = dataframe.loc[:, dataframe.columns == y_target].to_numpy()
+    x_dataset = dataframe.loc[:, dataframe.columns != y_target].to_numpy()
+    target = dataframe.loc[:, dataframe.columns == y_target].to_numpy()
 
     # split up traning data set
     x_train, x_test, y_train, y_test = train_test_split(
@@ -232,7 +232,7 @@ def DT(dataframe: pd, y_target: str, title: str) -> None:
 
     # give a confusion matrix
     y_pred: list = dtree.predict(x_test)
-    cm: object = confusion_matrix(y_test, y_pred)
+    cm = confusion_matrix(y_test, y_pred)
 
     # plot the confution matrix
     f, ax = plt.subplots(figsize=(5, 5))
@@ -249,7 +249,7 @@ def DT(dataframe: pd, y_target: str, title: str) -> None:
     # K nearest neighbors
 
 
-def KNN_fitting(dataframe: pd, y_target: str, title: str) -> None:
+def KNN_fitting(dataframe, y_target: str, title: str) -> None:
 
     # verifies that data frame exists as does the target
     if len(dataframe) == 0:
@@ -265,10 +265,10 @@ def KNN_fitting(dataframe: pd, y_target: str, title: str) -> None:
         dataframe = dataframe.loc[:, dataframe.columns != "Date"]
 
     # create the data sets
-    x_dataset: np = dataframe.loc[:, dataframe.columns != y_target].to_numpy()
-    target: np = dataframe.loc[:, dataframe.columns == y_target].to_numpy()
+    x_dataset = dataframe.loc[:, dataframe.columns != y_target].to_numpy()
+    target = dataframe.loc[:, dataframe.columns == y_target].to_numpy()
 
-    target: np = target.ravel()
+    target = target.ravel()
 
     # split up traning data set
     x_train, x_test, y_train, y_test = train_test_split(
@@ -334,7 +334,7 @@ def KNN_fitting(dataframe: pd, y_target: str, title: str) -> None:
     # Logit (machine learning)
 
 
-def logistic_modeling(yvar: str, dataframe: pd, title: str, *args) -> None:
+def logistic_modeling(yvar: str, dataframe, title: str, *args) -> None:
     # verify a complete dataframe
     if len(dataframe) == 0:
         print("Empty Dataframe - Logistic Regression")
@@ -352,8 +352,8 @@ def logistic_modeling(yvar: str, dataframe: pd, title: str, *args) -> None:
         sf_list = sf_list + i + " "
 
     # assemble data
-    X: pd = dataframe[f_list].copy()
-    Y: pd = dataframe[yvar].copy()
+    X = dataframe[f_list].copy()
+    Y = dataframe[yvar].copy()
 
     # train the model
     x_train, x_test, y_train, y_test = train_test_split(
@@ -394,7 +394,7 @@ def logistic_modeling(yvar: str, dataframe: pd, title: str, *args) -> None:
     # # create linear regressions
 
 
-def Multi_linear_regressions(dataframe: pd,
+def Multi_linear_regressions(dataframe,
                              yvar: str, title: str, *args) -> None:
     # check for an empty dataframe
     if len(dataframe) == 0:
@@ -412,8 +412,8 @@ def Multi_linear_regressions(dataframe: pd,
         f_list.append(i)
 
     # perform linear regression
-    x: pd = dataframe[f_list].copy()
-    y: pd = dataframe[yvar].copy()
+    x = dataframe[f_list].copy()
+    y = dataframe[yvar].copy()
 
     # build up the training data and fit the linear model
     x_train, x_test, y_train, y_test = train_test_split(
@@ -462,14 +462,14 @@ def Multi_linear_regressions(dataframe: pd,
 
 
 def Cluster_plots(xvar: str, yvar: str, zvar: str,
-                  clusters: int, df: pd, title: str) -> None:
+                  clusters: int, df, title: str) -> None:
     # check for empty dataframe
     if len(df) == 0:
         print("Empty Dataframe - Cluster Plot")
         return
 
     # extracts out the relevant dataframe
-    dataframe: pd = df[[xvar, yvar, zvar]].copy()
+    dataframe = df[[xvar, yvar, zvar]].copy()
 
     # createa a subplot with 1 row and 2 columns
     fig, (ax1, ax2) = plt.subplots(1, 2)
@@ -620,7 +620,7 @@ def k_means_plots(xvar: str, yvar: str, cluster_range: list,
     # standardizes file cleanups
 
 
-def custom_clean_up(dataframe: pd) -> pd:
+def custom_clean_up(dataframe):
     # test for empty dataframe and return error
     if len(dataframe) == 0:
         print(f"{dataframe} has no data")
@@ -790,8 +790,8 @@ def three_D_plot(data: list, xvar: str, yvar: str, plot_name: str) -> None:
     file_label: str = f"3D_plot_{plot_name} {xvar} {yvar} difference.tiff"
 
     # generates plots
-    fig: object = plt.figure()
-    ax: object = fig.add_subplot(projection='3d')
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
     ax.scatter(data[xvar], data[yvar], data["Difference"])
     ax.set_xlabel(xvar)
     ax.set_ylabel(yvar)
